@@ -14,6 +14,18 @@ public class Utils {
 		}
 		return new String(hexChars);
 	}
+	
+	public static String bytesToHex(byte[] bytes, int length) {
+		char[] hexChars = new char[length * 3];
+		int v;
+		for ( int j = 0; j < length; j++ ) {
+			v = bytes[j] & 0xFF;
+			hexChars[j * 3] = hexArray[v >>> 4];
+			hexChars[j * 3 + 1] = hexArray[v & 0x0F];
+			hexChars[j * 3 + 2] = ' ';
+		}
+		return new String(hexChars);
+	}
 
 	public static String byteToHex(byte aByte) {
 		int v = aByte & 0xFF;

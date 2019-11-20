@@ -1,11 +1,12 @@
 package arducam;
 
 import com.sun.jna.Library;
+import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.Structure.FieldOrder;
-import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.PointerByReference;
 
 public interface ArduCamSDK extends Library {
 	ArduCamSDK INSTANCE = (ArduCamSDK)Native.load("ArduCamLib", ArduCamSDK.class);
@@ -33,13 +34,13 @@ public interface ArduCamSDK extends Library {
 	public static class ArduCamOutData extends Structure {
 		public static class ByReference extends ArduCamOutData implements Structure.ByReference { }
 		
-		public ArduCamCfg stImagePara;				
-		public int u64Time;      
-		public Pointer pu8ImageData;      
+		public ArduCamCfg.ByReference stImagePara;				
+		public long u64Time;      
+		public Pointer pu8ImageData = new Memory(1280*964*2 * Native.getNativeSize(Byte.TYPE));      
 		
 	}
 
-	int ArduCam_autoopen(IntByReference useHandle, ArduCamCfg.ByReference useCfg);
+	int ArduCam_autoopen(Pointer useHandle, ArduCamCfg.ByReference useCfg);
 	
 	int ArduCam_scan( Object... args );
 	int ArduCam_open( Pointer useHandle, ArduCamCfg.ByReference useCfg, int usbIdx );
@@ -50,7 +51,10 @@ public interface ArduCamSDK extends Library {
 	int ArduCam_endCaptureImage( int useHandle );
 	
 	int ArduCam_availableImage( int useHandle );
-	int ArduCam_readImage( int useHandle, Pointer pstFrameData );	
+//	int ArduCam_readImage( int useHandle, Pointer pstFrameData );
+	int ArduCam_readImage( int useHandle, Object pstFrameData );	
+	
+	int ArduCam_writeSensorReg( int useHandle, int regAddr, int val );
 	
 	int ArduCam_del( int useHandle );							
 	int ArduCam_flush( int useHandle );
@@ -60,7 +64,8 @@ public interface ArduCamSDK extends Library {
 	
 	int ArduCam_setboardConfig( int useHandle, int u8Command, int u16Value, int u16Index, int u32BufSize, Pointer pu8Buf );
 
+	int ArduCam_softTrigger(int useHandle);
 	int ArduCam_isFrameReady(int useHandle);
-	int ArduCam_getSingleFrame(int useHandle, Pointer pstFrameData, int time_out);
+	int ArduCam_getSingleFrame(int useHandle, Object pDump, int timeOut);
 	int ArduCam_setMode(int useHandle, int mode);
 }
