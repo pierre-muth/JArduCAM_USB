@@ -36,10 +36,10 @@ public class SDKtest {
 		useCfg.u16Vid = 0x52CB;                 // Vendor ID for USB
 		useCfg.u32Width = 1280;					// Image Width
 		useCfg.u32Height = 964;					// Image Height
-		useCfg.u8PixelBytes = 2;
-		useCfg.u8PixelBits = 12;
+		useCfg.u8PixelBytes = 1;
+		useCfg.u8PixelBits = 8;
 		useCfg.u32I2cAddr = 0x20;
-		useCfg.u32Size = 1;
+		useCfg.u32Size = 1280*964;
 		useCfg.usbType = 2;
 		useCfg.emI2cMode = 3;
 		useCfg.emImageFmtMode = 0;			// image format mode 
@@ -48,19 +48,12 @@ public class SDKtest {
 		answer = arduCamSDKlib.ArduCam_autoopen(useHandle.getPointer(), useCfg);
 		System.out.println("ArduCam_autoopen returned: "+Utils.intToHex(answer));
 		System.out.println("useHandle.getValue(): "+Utils.intToHex( useHandle.getValue() ));
-		System.out.println("...");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		
 		System.out.println("");
 		
 		Pointer pu8Buf1 = new Memory(1 * Native.getNativeSize(Byte.TYPE));
-		
-		pu8Buf1.setByte(0, (byte) 0x85);
-		answer = arduCamSDKlib.ArduCam_setboardConfig(useHandle.getValue(), 0xD7, 0x4600, 0x0100, 1, pu8Buf1);
+		pu8Buf1.setByte(0, (byte) 0x05);
+		answer  = arduCamSDKlib.ArduCam_setboardConfig(useHandle.getValue(), 0xD7, 0x4600, 0x0100, 1, pu8Buf1);
 		pu8Buf1.setByte(0, (byte) 0x00);
 		answer += arduCamSDKlib.ArduCam_setboardConfig(useHandle.getValue(), 0xD7, 0x4600, 0x0200, 1, pu8Buf1);
 		pu8Buf1.setByte(0, (byte) 0xC0);
@@ -74,24 +67,25 @@ public class SDKtest {
 		Pointer pu8Buf3 = new Memory(3 * Native.getNativeSize(Byte.TYPE));
 		pu8Buf3.setByte(0, (byte) 0x03);
 		pu8Buf3.setByte(1, (byte) 0x04);
-		pu8Buf3.setByte(2, (byte) 0x09);
+		pu8Buf3.setByte(2, (byte) 0x0C);
 		answer += arduCamSDKlib.ArduCam_setboardConfig(useHandle.getValue(), 0xF6, 0x0000, 0x0000, 3, pu8Buf3);
 		System.out.println("ArduCam_setboardConfig returned: "+Utils.intToHex(answer));
 		
 		int i2cAddr = 0x20;
 		
-		answer = arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3028, 0x0010);
+		answer  = arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3028, 0x0010);
 		
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x302E, 0x0001);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3030, 0x0012);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x302E, 0x0002);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3030, 0x002F);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x302C, 0x0001);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x302A, 0x0010);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x302A, 0x0008);
 		
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3032, 0x0000);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30B0, 0x0080);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30B0, 0x0480);
 		
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x301A, 0x10DC);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x300C, 0x0672);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x301A, 0x1990);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x300C, 0x06C2);
 		
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3002, 0x0000);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3004, 0x0000);
@@ -109,16 +103,19 @@ public class SDKtest {
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30AA, 0x03DE);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3016, 0x00FA);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3018, 0x00C0);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30A8, 0x000C);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30A8, 0x0001);
 		
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3040, 0x4000);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3064, 0x1982);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x31C6, 0x8000);
 		
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3056, 48);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3058, 66);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x305A, 66);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x305C, 48);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3100, 0x0000);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x305E, 0x00F0);
+		
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3056, 30);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3058, 42);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x305A, 42);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x305C, 30);
 		
 		System.out.println("ArduCam_writeReg_16_16 returned: "+Utils.intToHex(answer));
 		
@@ -129,6 +126,7 @@ public class SDKtest {
 		System.out.println("regAddr: "+Utils.intToHex(regAddr)+" pval.getValue(): "+Utils.intToHex( pval.getValue() ));
 		
 		//CONTINUOUS_MODE = 0x02
+		//EXTERNAL_TRIGGER_MODE = 0x01
 		answer = arduCamSDKlib.ArduCam_setMode(useHandle.getValue(), 0x01);
 		System.out.println("ArduCam_setMode returned: "+Utils.intToHex(answer));
 		
@@ -139,15 +137,12 @@ public class SDKtest {
 			e.printStackTrace();
 		}
 
-//		Thread captureImageThread = new Thread(new CaptureImageThread(useHandle));
-//		captureImageThread.start();
-		
 		Thread readImageThread = new Thread(new ReadImageThread(useHandle));
 		readImageThread.start();
 		
 		System.out.println("Running.");
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(2000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -157,20 +152,15 @@ public class SDKtest {
 		System.out.println("ArduCam_softTrigger returned: "+Utils.intToHex(answer));
 		
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(4000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		
 		running = false; 
-//		captureImageThread.join();
 		readImageThread.join();
 		
 		System.out.println("Stopped.");
-		
-//		ArduCamSDK.ArduCamOutData.ByReference frameData = new ArduCamSDK.ArduCamOutData.ByReference();
-//		answer = arduCamSDKlib.ArduCam_readImage(useHandle.getValue(), frameData.getPointer());
-//		System.out.println("ArduCam_readImage returned: "+Utils.intToHex(answer));
 		
 		answer = arduCamSDKlib.ArduCam_close(useHandle.getValue());
 		System.out.println("ArduCam_close returned: "+Utils.intToHex(answer));
@@ -199,27 +189,24 @@ public class SDKtest {
 			
 			while(running){
 
-//				int answer = arduCamSDKlib.ArduCam_availableImage(useHandle.getValue());
-//				System.out.println("ReadImageThread: ArduCam_availableImage returned: "+Utils.intToHex(answer));
-//				answer = arduCamSDKlib.ArduCam_availableImage(useHandle.getValue());
-//				System.out.println("ReadImageThread: ArduCam_availableImage returned: "+Utils.intToHex(answer));
-//				answer = arduCamSDKlib.ArduCam_isFrameReady(useHandle.getValue());
-//				System.out.println("ReadImageThread: ArduCam_isFrameReady returned: "+Utils.intToHex(answer));
+				answer = arduCamSDKlib.ArduCam_isFrameReady(useHandle.getValue());
+				System.out.println("ReadImageThread: ArduCam_isFrameReady returned: "+Utils.intToHex(answer));
 
-//				if (answer > 0 && answer < 255){
-					
-//					answer = arduCamSDKlib.ArduCam_readImage(useHandle.getValue(), byteDump);
-//					System.out.println("ReadImageThread: ArduCam_readImage returned: "+Utils.intToHex(answer));
-
-//				}
+				if (answer == 1){
+					System.out.println("will ArduCam_getSingleFrame");
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					answer = arduCamSDKlib.ArduCam_getSingleFrame(useHandle.getValue(), byteDump, 3000);
+					System.out.println("ReadImageThread: ArduCam_getSingleFrame returned: "+Utils.intToHex(answer));
+					System.out.println("ReadImageThread: 128 byteDump: "+Utils.bytesToHex( byteDump, 128 ));
+				}
 				
-				System.out.println("will ArduCam_getSingleFrame");
-				answer = arduCamSDKlib.ArduCam_getSingleFrame(useHandle.getValue(), byteDump, 3000);
-				System.out.println("ReadImageThread: ArduCam_getSingleFrame returned: "+Utils.intToHex(answer));
-				System.out.println("ReadImageThread: 128 byteDump: "+Utils.bytesToHex( byteDump, 128 ));
 
 				try {
-					Thread.sleep(100);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
