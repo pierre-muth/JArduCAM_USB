@@ -23,11 +23,7 @@ public class SDKtest {
 		System.out.println("ArduCam_scan returned: "+Utils.intToHex(answer));
 		System.out.println("arg1: "+Utils.bytesToHex( arg1 )+" : "+new String(arg1));
 		System.out.println("...");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		Thread.sleep(2000);
 		
 		IntByReference useHandle = new IntByReference();
 		int usbIdx = 0;
@@ -48,11 +44,7 @@ public class SDKtest {
 		answer = arduCamSDKlib.ArduCam_autoopen(useHandle.getPointer(), useCfg);
 		System.out.println("ArduCam_autoopen returned: "+Utils.intToHex(answer));
 		System.out.println("useHandle.getValue(): "+Utils.intToHex( useHandle.getValue() ));
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		Thread.sleep(2000);
 		System.out.println("");
 		
 		IntByReference pu8DevUsbType = new IntByReference();
@@ -84,11 +76,7 @@ public class SDKtest {
 		answer += arduCamSDKlib.ArduCam_setboardConfig(useHandle.getValue(), 0xF6, 0x0000, 0x0000, 3, pu8Buf3);
 		System.out.println("ArduCam_setboardConfig returned: "+Utils.intToHex(answer));
 		
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		Thread.sleep(2000);
 		System.out.println("");
 		
 		int i2cAddr = 0x20;
@@ -150,11 +138,7 @@ public class SDKtest {
 		System.out.println("ArduCam_setMode returned: "+Utils.intToHex(answer));
 		
 		System.out.println("..");
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		Thread.sleep(1000);
 
 		Thread captureImageThread = new Thread(new CaptureImageThread(useHandle));
 		captureImageThread.start();
@@ -163,11 +147,7 @@ public class SDKtest {
 		readImageThread.start();
 		
 		System.out.println("Running.");
-		try {
-			Thread.sleep(8000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		Thread.sleep(8000);
 		
 		running = false; 
 		captureImageThread.join();
