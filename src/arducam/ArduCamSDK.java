@@ -62,6 +62,8 @@ public interface ArduCamSDK extends Library {
 	int ArduCam_writeReg_16_16( int useHandle, int i2cAddr, int regAddr, int pval );
 	int ArduCam_readReg_16_16( int useHandle, int i2cAddr, int regAddr, Pointer pval );
 	
+	int ArduCam_getUsbType(int useHandle, Pointer pu8DevUsbType, Pointer pu8InfUsbType);
+	
 	int ArduCam_setboardConfig( int useHandle, int u8Command, int u16Value, int u16Index, int u32BufSize, Pointer pu8Buf );
 
 	int ArduCam_softTrigger(int useHandle);

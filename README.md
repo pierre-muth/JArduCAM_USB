@@ -1,2 +1,2 @@
 # JArduCAM_USB
-Java wrapper to ArduCam_USB shield "SKD" library using JNA
+Attempt of a Java wrapper to ArduCam_USB shield "SKD" library using JNA
