@@ -1,5 +1,7 @@
 package arducam;
 
+import java.util.Date;
+
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -16,6 +18,7 @@ public class SDKtest {
 	public SDKtest() throws InterruptedException {
 		byte[] arg1 = new byte[32];
 		int answer;
+		
 
 		arduCamSDKlib = ArduCamSDK.INSTANCE;
 
@@ -42,6 +45,7 @@ public class SDKtest {
 		useCfg.u32TransLvl = 64;
 		
 		answer = arduCamSDKlib.ArduCam_autoopen(useHandle.getPointer(), useCfg);
+		System.out.println(new Date().getTime());
 		System.out.println("ArduCam_autoopen returned: "+Utils.intToHex(answer));
 		System.out.println("useHandle.getValue(): "+Utils.intToHex( useHandle.getValue() ));
 		Thread.sleep(2000);
@@ -50,6 +54,7 @@ public class SDKtest {
 		IntByReference pu8DevUsbType = new IntByReference();
 		IntByReference pu8InfUsbType = new IntByReference();
 		answer = arduCamSDKlib.ArduCam_getUsbType(useHandle.getValue(), pu8DevUsbType.getPointer(), pu8InfUsbType.getPointer());
+		System.out.println(new Date().getTime());
 		System.out.println("ArduCam_getUsbType returned: "+Utils.intToHex(answer));
 		System.out.println("ArduCam_getUsbType pu8DevUsbType: "+Utils.intToHex(pu8DevUsbType.getValue()));
 		System.out.println("ArduCam_getUsbType pu8InfUsbType: "+Utils.intToHex(pu8InfUsbType.getValue()));
@@ -74,6 +79,7 @@ public class SDKtest {
 		pu8Buf3.setByte(1, (byte) 0x04);
 		pu8Buf3.setByte(2, (byte) 0x0C);
 		answer += arduCamSDKlib.ArduCam_setboardConfig(useHandle.getValue(), 0xF6, 0x0000, 0x0000, 3, pu8Buf3);
+		System.out.println(new Date().getTime());
 		System.out.println("ArduCam_setboardConfig returned: "+Utils.intToHex(answer));
 		
 		Thread.sleep(2000);
@@ -124,6 +130,7 @@ public class SDKtest {
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x305A, 42);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x305C, 30);
 		
+		System.out.println(new Date().getTime());
 		System.out.println("ArduCam_writeReg_16_16 returned: "+Utils.intToHex(answer));
 		
 		int regAddr = 0x3012;
@@ -135,6 +142,7 @@ public class SDKtest {
 		//EXTERNAL_TRIGGER_MODE = 0x01
 		//CONTINUOUS_MODE = 0x02
 		answer = arduCamSDKlib.ArduCam_setMode(useHandle.getValue(), 0x02);
+		System.out.println(new Date().getTime());
 		System.out.println("ArduCam_setMode returned: "+Utils.intToHex(answer));
 		
 		System.out.println("..");
@@ -146,6 +154,7 @@ public class SDKtest {
 		Thread readImageThread = new Thread(new ReadImageThread(useHandle));
 		readImageThread.start();
 		
+		System.out.println(new Date().getTime());
 		System.out.println("Running.");
 		Thread.sleep(8000);
 		
@@ -156,6 +165,7 @@ public class SDKtest {
 		System.out.println("Stopped.");
 		
 		answer = arduCamSDKlib.ArduCam_close(useHandle.getValue());
+		System.out.println(new Date().getTime());
 		System.out.println("ArduCam_close returned: "+Utils.intToHex(answer));
 		System.out.println("useHandle.getValue(): "+Utils.intToHex( useHandle.getValue() ));
 	}
@@ -170,7 +180,7 @@ public class SDKtest {
 		@Override
 		public void run() {
 			int answer = arduCamSDKlib.ArduCam_beginCaptureImage(useHandle.getValue());
-			System.out.println("CaptureImageThread: ArduCam_beginCaptureImage returned: "+Utils.intToHex(answer));
+			System.out.println(new Date().getTime()+" CaptureImageThread: ArduCam_beginCaptureImage returned: "+Utils.intToHex(answer));
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -179,7 +189,7 @@ public class SDKtest {
 			
 			while(running){
 				answer = arduCamSDKlib.ArduCam_captureImage(useHandle.getValue());
-				System.out.println("CaptureImageThread: ArduCam_captureImage returned: "+Utils.intToHex(answer));
+				System.out.println(new Date().getTime()+" CaptureImageThread: ArduCam_captureImage returned: "+Utils.intToHex(answer));
 				
 				try {
 					Thread.sleep(100);
@@ -189,7 +199,7 @@ public class SDKtest {
 			}
 			
 			answer = arduCamSDKlib.ArduCam_endCaptureImage(useHandle.getValue());
-			System.out.println("CaptureImageThread: ArduCam_endCaptureImage returned: "+Utils.intToHex(answer));
+			System.out.println(new Date().getTime()+" CaptureImageThread: ArduCam_endCaptureImage returned: "+Utils.intToHex(answer));
 					
 		}
 		
@@ -218,7 +228,7 @@ public class SDKtest {
 			while(running){
 
 				answer = arduCamSDKlib.ArduCam_availableImage(useHandle.getValue());
-				System.out.println("ReadImageThread: ArduCam_availableImage returned: "+Utils.intToHex(answer));
+				System.out.println(new Date().getTime()+"  ReadImageThread: ArduCam_availableImage returned: "+Utils.intToHex(answer));
 
 				if (answer >0){
 					System.out.println("will ArduCam_getSingleFrame");

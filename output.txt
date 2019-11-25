@@ -1,0 +1,165 @@
+ArduCam_scan returned: 00000001
+arg1: 00 41 55 32 53 31 39 34 33 30 30 30 36 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  : AU2S19430006
+...
+1574698058489
+ArduCam_autoopen returned: 00000000
+useHandle.getValue(): 5903BD70
+
+1574698060490
+ArduCam_getUsbType returned: 00000000
+ArduCam_getUsbType pu8DevUsbType: 00000002
+ArduCam_getUsbType pu8InfUsbType: 00000002
+
+1574698060494
+ArduCam_setboardConfig returned: 00000000
+
+1574698062514
+ArduCam_writeReg_16_16 returned: 00000000
+ArduCam_readReg_16_16 returned: 00000000
+regAddr: 00003012 pval.getValue(): 0000DEAD
+1574698062516
+ArduCam_setMode returned: 00000000
+..
+1574698063520
+Running.
+1574698063521  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698063521 CaptureImageThread: ArduCam_beginCaptureImage returned: 00000000
+1574698063621  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698063722  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698063822  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698063922  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064025  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064125  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064225  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064325  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064425  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064525  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064625  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064725  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064825  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698064925  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065025  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065125  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065225  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065325  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065425  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065525  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065625  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065725  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065825  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698065926  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066022 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066026  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066122 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066126  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066222 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066226  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066322 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066326  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066422 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066426  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066522 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066526  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066622 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066626  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066722 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066726  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066822 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066826  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698066922 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698066927  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067022 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067029  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067122 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067131  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067222 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067231  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067322 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067331  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067422 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067431  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067522 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067531  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067622 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067631  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067722 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067731  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067822 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067831  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698067922 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698067931  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068022 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068031  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068122 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068131  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068222 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068231  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068326 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068331  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068426 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068431  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068526 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068531  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068626 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068631  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068726 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068731  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068826 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068831  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698068926 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698068931  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069026 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069031  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069126 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069131  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069226 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069231  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069326 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069331  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069426 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069431  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069526 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069531  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069626 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069631  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069726 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069731  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069826 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069831  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698069926 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698069931  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070026 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070031  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070126 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070131  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070226 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070231  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070326 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070331  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070427 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070432  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070527 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070532  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070627 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070632  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070727 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070732  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070827 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070832  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698070927 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698070932  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698071027 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698071032  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698071127 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698071132  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698071227 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698071232  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698071327 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698071332  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698071427 CaptureImageThread: ArduCam_captureImage returned: 0000FF26
+1574698071432  ReadImageThread: ArduCam_availableImage returned: 00000000
+1574698071528 CaptureImageThread: ArduCam_endCaptureImage returned: 00000000
+Stopped.
+1574698071532
+ArduCam_close returned: 00000000
+useHandle.getValue(): 5903BD70
