@@ -32,11 +32,14 @@ public interface ArduCamSDK extends Library {
 	
 	@FieldOrder({ "stImagePara", "u64Time", "pu8ImageData" })
 	public static class ArduCamOutData extends Structure {
-		public static class ByReference extends ArduCamOutData implements Structure.ByReference { }
-		
+		public ArduCamOutData(Pointer p){
+			super(p);
+			read();
+		}
 		public ArduCamCfg.ByReference stImagePara;				
 		public long u64Time;      
-		public Pointer pu8ImageData = new Memory(1280*964*2 * Native.getNativeSize(Byte.TYPE));      
+//		public Pointer pu8ImageData = new Memory(1280*964*1 * Native.getNativeSize(Byte.TYPE));
+		public Pointer pu8ImageData;
 		
 	}
 
@@ -51,7 +54,7 @@ public interface ArduCamSDK extends Library {
 	int ArduCam_endCaptureImage( int useHandle );
 	
 	int ArduCam_availableImage( int useHandle );
-//	int ArduCam_readImage( int useHandle, Pointer pstFrameData );
+//	int ArduCam_readImage( int useHandle, ArduCamOutData.ByReference pstFrameData );
 	int ArduCam_readImage( int useHandle, Object pstFrameData );	
 	
 	int ArduCam_writeSensorReg( int useHandle, int regAddr, int val );
