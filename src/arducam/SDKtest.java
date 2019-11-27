@@ -22,6 +22,7 @@ import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 
+import arducam.ArduCamSDK.ArduCamCfg;
 import arducam.ArduCamSDK.ArduCamOutData;
 import cern.jdve.Chart;
 import cern.jdve.ChartInteractor;
@@ -32,7 +33,7 @@ public class SDKtest extends JPanel {
 	private static IntByReference useHandle;
 	private static Thread captureImageThread;
 	private static Thread readImageThread;
-	private static boolean running = true;
+	private static boolean running = false;
 	private ArduCamSDK.ArduCamCfg.ByReference useCfg;
 	private JLabel imageLabel;
 	public static final int HEIGHT = 964;
@@ -80,11 +81,8 @@ public class SDKtest extends JPanel {
 
 	private class ReadImageThread implements Runnable {
 		private IntByReference useHandle;
-		private ArduCamSDK.ArduCamOutData arduCamOutData;
-		private LongByReference ref = new LongByReference();
+		private PointerByReference pstFrameData = new PointerByReference();
 
-		
-		
 		public ReadImageThread(IntByReference useHandle) {
 			this.useHandle = useHandle;
 		}
@@ -97,12 +95,16 @@ public class SDKtest extends JPanel {
 				answer = arduCamSDKlib.ArduCam_availableImage(useHandle.getValue());
 				if (answer >0){
 					System.out.println("");
-					answer = arduCamSDKlib.ArduCam_readImage(useHandle.getValue(), ref);
-					Pointer pt = new Pointer(ref.getValue());
 
-					byte[] blist = pt.getByteArray(0, 1280*50);
-					for (int i = 0; i < blist.length; i++) {
-						pixList[i] = blist[i];
+					answer = arduCamSDKlib.ArduCam_readImage(useHandle.getValue(), pstFrameData);
+					
+					ArduCamOutData arduCamOutData = new ArduCamOutData(pstFrameData.getValue());
+					ArduCamCfg arduCamCfg = arduCamOutData.stImagePara;
+					
+					byte[] imageData = arduCamOutData.pu8ImageData.getPointer().getByteArray(0, arduCamCfg.u32Size);
+//					
+					for (int i = 0; i < imageData.length; i++) {
+						pixList[i] = imageData[i];
 					}
 					
 					javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -131,6 +133,8 @@ public class SDKtest extends JPanel {
 	}
 
 	private void initCam() throws InterruptedException{
+		if (running) return;
+		
 		byte[] arg1 = new byte[32];
 		int answer;
 
@@ -152,12 +156,12 @@ public class SDKtest extends JPanel {
 		useCfg.u8PixelBytes = 1;
 		useCfg.u8PixelBits = 8;
 		useCfg.u32I2cAddr = 0x20;
-		useCfg.u32Size = 1280*964;
+		useCfg.u32Size = 0xDEAD;
 		useCfg.usbType = 2;
 		useCfg.emI2cMode = 3;
 		useCfg.emImageFmtMode = 0;			// image format mode 
 		useCfg.u32TransLvl = 64;
-
+		
 		answer = arduCamSDKlib.ArduCam_autoopen(useHandle.getPointer(), useCfg);
 		System.out.println(new Date().getTime());
 		System.out.println("ArduCam_autoopen returned: "+Utils.intToHex(answer));
@@ -221,7 +225,7 @@ public class SDKtest extends JPanel {
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3006, 0x03BF);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3008, 0x04FF);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x300A, 0x03DE);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3012, 0x0800);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3012, 0x4000);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3014, 0x00C0);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30A6, 0x0001);
 
@@ -263,6 +267,7 @@ public class SDKtest extends JPanel {
 		System.out.println("ArduCam_setMode returned: "+Utils.intToHex(answer));
 		if (answer != 0) return;
 
+		running = true;
 		System.out.println("..");
 		Thread.sleep(1000);
 
@@ -279,6 +284,7 @@ public class SDKtest extends JPanel {
 	}
 
 	private void stopCam(){
+		if (!running) return;
 
 		running = false; 
 		try {

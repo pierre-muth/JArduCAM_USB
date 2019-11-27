@@ -6,6 +6,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.Structure.FieldOrder;
+import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.PointerByReference;
 
 public interface ArduCamSDK extends Library {
@@ -15,15 +16,22 @@ public interface ArduCamSDK extends Library {
 	public static class ArduCamCfg extends Structure {
 		public static class ByReference extends ArduCamCfg implements Structure.ByReference { }
 		
+		public ArduCamCfg(){
+			super();
+		}
+		public ArduCamCfg(Pointer p){
+			super(p);
+		}
+		
 		public int	u32CameraType;				// Camera Type
-		public int  u16Vid;                     // Vendor ID for USB
+		public short  u16Vid;                     // Vendor ID for USB
 		public int	u32Width;					// Image Width
 		public int	u32Height;					// Image Height
-		public int	u8PixelBytes;
-		public int  u8PixelBits;
+		public byte	u8PixelBytes;
+		public byte  u8PixelBits;
 		public int  u32I2cAddr;
 		public int  u32Size;
-		public int  usbType;
+		public byte  usbType;
 		public int  emI2cMode;
 		public int  emImageFmtMode;			// image format mode 
 		public int	u32TransLvl;
@@ -34,12 +42,12 @@ public interface ArduCamSDK extends Library {
 	public static class ArduCamOutData extends Structure {
 		public ArduCamOutData(Pointer p){
 			super(p);
-			read();
+			autoRead();
 		}
-		public ArduCamCfg.ByReference stImagePara;				
+		
+		public ArduCamCfg stImagePara;				
 		public long u64Time;      
-//		public Pointer pu8ImageData = new Memory(1280*964*1 * Native.getNativeSize(Byte.TYPE));
-		public Pointer pu8ImageData;
+		public PointerByReference pu8ImageData;
 		
 	}
 
@@ -55,7 +63,7 @@ public interface ArduCamSDK extends Library {
 	
 	int ArduCam_availableImage( int useHandle );
 //	int ArduCam_readImage( int useHandle, ArduCamOutData.ByReference pstFrameData );
-	int ArduCam_readImage( int useHandle, Object pstFrameData );	
+	int ArduCam_readImage( int useHandle, PointerByReference pstFrameData );	
 	
 	int ArduCam_writeSensorReg( int useHandle, int regAddr, int val );
 	
