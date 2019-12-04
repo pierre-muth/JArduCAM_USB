@@ -7,21 +7,35 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ArduCamCfgFileParameters {
-	public static final String CAMERA_PARAMETER_KEY =		"[camera parameter]";
-	public static final String BOARD_USB2_PARAMETER_KEY =	"[board parameter][dev2]";
-	public static final String REGISTER_PARAMETER_KEY =		"[register parameter]";
+	private static final String CAMERA_PARAMETER_KEY =		"[camera parameter]";
+	private static final String BOARD_PARAMETER_KEY =		"[board parameter]";
+	private static final String BOARD_USB2_PARAMETER_KEY =	"[board parameter][dev2]";
+	private static final String BOARD_USB3_INF2_PARAMETER_KEY =	"[board parameter][dev3][inf2]";
+	private static final String BOARD_USB3_INF3_PARAMETER_KEY =	"[board parameter][dev3][inf3]";
+	private static final String REGISTER_PARAMETER_KEY =		"[register parameter]";
 	
 	public CameraParameter cameraParameters;
+	public ArrayList<BoardParameter> boardParameters;
 	public ArrayList<BoardParameter> boardUSB2Parameters;
+	public ArrayList<BoardParameter> boardUSB3INF2Parameters;
+	public ArrayList<BoardParameter> boardUSB3INF3Parameters;
 	public ArrayList<RegisterParameter> registerParameters;
 	
 	public ArduCamCfgFileParameters(File cfgFile) throws IOException{
 		String line;
 		BufferedReader br = new BufferedReader( new FileReader(cfgFile) );
-		Parameter node = Parameter.NONE;
+		ParameterType node = ParameterType.NONE;
 		cameraParameters = new CameraParameter(); 
+		boardParameters = new ArrayList<>();
 		boardUSB2Parameters = new ArrayList<>();
+		boardUSB3INF2Parameters = new ArrayList<>();
+		boardUSB3INF3Parameters = new ArrayList<>();
 		registerParameters = new ArrayList<>();
+		
+		int[] buf;
+		String[] pieces;
+		BoardParameter bp;
+		int offset;
 		
 		do {
 			line = br.readLine();
@@ -30,19 +44,31 @@ public class ArduCamCfgFileParameters {
 			if (line.startsWith(";")) continue;
 			if (line.isEmpty()) continue;
 			if (line.compareTo(CAMERA_PARAMETER_KEY) == 0) {
-				node = Parameter.CAMERA_PARAMETER;
+				node = ParameterType.CAMERA_PARAMETER;
+				continue;
+			}
+			if (line.compareTo(BOARD_PARAMETER_KEY) == 0) {
+				node = ParameterType.BOARD_PARAMETER;
 				continue;
 			}
 			if (line.compareTo(BOARD_USB2_PARAMETER_KEY) == 0) {
-				node = Parameter.BOARD_USB2_PARAMETER;
+				node = ParameterType.BOARD_USB2_PARAMETER;
 				continue;
 			}
-			if (line.compareTo( REGISTER_PARAMETER_KEY ) == 0) {
-				node = Parameter.REGISTER_PARAMETER;
+			if (line.compareTo(BOARD_USB3_INF2_PARAMETER_KEY) == 0) {
+				node = ParameterType.BOARD_USB3_INF2_PARAMETER;
+				continue;
+			}
+			if (line.compareTo(BOARD_USB3_INF3_PARAMETER_KEY) == 0) {
+				node = ParameterType.BOARD_USB3_INF3_PARAMETER;
+				continue;
+			}
+			if (line.compareTo(REGISTER_PARAMETER_KEY) == 0) {
+				node = ParameterType.REGISTER_PARAMETER;
 				continue;
 			}
 			if (line.startsWith("[")) {
-				node = Parameter.NONE;
+				node = ParameterType.NONE;
 				continue;
 			}
 			
@@ -76,26 +102,97 @@ public class ArduCamCfgFileParameters {
 					cameraParameters.TRANS_LVL = Integer.parseInt( line.split("=")[1] );
 				
 				break;
-
-			case BOARD_USB2_PARAMETER:
+				
+			case BOARD_PARAMETER:
+				offset =  line.indexOf("//");
+				if (offset != -1) line = line.substring(0, offset);
 				line = line.replaceAll("VRCMD=", "");
-				String[] pieces = line.split(",");
-				BoardParameter bp = new BoardParameter();
+				pieces = line.split(",");
+				bp = new BoardParameter();
 				bp.P0 = Integer.parseInt( pieces[0].replace("0x", ""), 16 );
 				bp.P1 = Integer.parseInt( pieces[1].replace("0x", ""), 16 );
 				bp.P2 = Integer.parseInt( pieces[2].replace("0x", ""), 16 );
 				bp.P3 = Integer.parseInt( pieces[3] );
-				int[] buf = new int[bp.P3];
-				for (int i = 0; i < buf.length; i++) {
-					buf[i] = Integer.parseInt( pieces[i+4].replace("0x", ""), 16 );
+				
+				if (bp.P3 > 0) {
+					buf = new int[bp.P3];
+					for (int i = 0; i < buf.length; i++) {
+						buf[i] = Integer.parseInt( pieces[i+4].replace("0x", ""), 16 );
+					}
+					bp.P4 = buf;
 				}
-				bp.P4 = buf;
+				boardParameters.add(bp);
+				
+				break;
+
+			case BOARD_USB2_PARAMETER:
+				offset =  line.indexOf("//");
+				if (offset != -1) line = line.substring(0, offset);
+				line = line.replaceAll("VRCMD=", "");
+				pieces = line.split(",");
+				bp = new BoardParameter();
+				bp.P0 = Integer.parseInt( pieces[0].replace("0x", ""), 16 );
+				bp.P1 = Integer.parseInt( pieces[1].replace("0x", ""), 16 );
+				bp.P2 = Integer.parseInt( pieces[2].replace("0x", ""), 16 );
+				bp.P3 = Integer.parseInt( pieces[3] );
+				
+				if (bp.P3 > 0) {
+					buf = new int[bp.P3];
+					for (int i = 0; i < buf.length; i++) {
+						buf[i] = Integer.parseInt( pieces[i+4].replace("0x", ""), 16 );
+					}
+					bp.P4 = buf;
+				}
 				boardUSB2Parameters.add(bp);
 				
 				break;
 				
+			case BOARD_USB3_INF2_PARAMETER:
+				offset =  line.indexOf("//");
+				if (offset != -1) line = line.substring(0, offset);
+				line = line.replaceAll("VRCMD=", "");
+				pieces = line.split(",");
+				bp = new BoardParameter();
+				bp.P0 = Integer.parseInt( pieces[0].replace("0x", ""), 16 );
+				bp.P1 = Integer.parseInt( pieces[1].replace("0x", ""), 16 );
+				bp.P2 = Integer.parseInt( pieces[2].replace("0x", ""), 16 );
+				bp.P3 = Integer.parseInt( pieces[3] );
+				
+				if (bp.P3 > 0) {
+					buf = new int[bp.P3];
+					for (int i = 0; i < buf.length; i++) {
+						buf[i] = Integer.parseInt( pieces[i+4].replace("0x", ""), 16 );
+					}
+					bp.P4 = buf;
+				}
+				boardUSB3INF2Parameters.add(bp);
+				
+				break;
+				
+			case BOARD_USB3_INF3_PARAMETER:
+				offset =  line.indexOf("//");
+				if (offset != -1) line = line.substring(0, offset);
+				line = line.replaceAll("VRCMD=", "");
+				pieces = line.split(",");
+				bp = new BoardParameter();
+				bp.P0 = Integer.parseInt( pieces[0].replace("0x", ""), 16 );
+				bp.P1 = Integer.parseInt( pieces[1].replace("0x", ""), 16 );
+				bp.P2 = Integer.parseInt( pieces[2].replace("0x", ""), 16 );
+				bp.P3 = Integer.parseInt( pieces[3] );
+				
+				if (bp.P3 > 0) {
+					buf = new int[bp.P3];
+					for (int i = 0; i < buf.length; i++) {
+						buf[i] = Integer.parseInt( pieces[i+4].replace("0x", ""), 16 );
+					}
+					bp.P4 = buf;
+				}
+				boardUSB3INF3Parameters.add(bp);
+				
+				break;
+				
 			case REGISTER_PARAMETER:
-				int offset =  line.indexOf("//");
+				offset =  line.indexOf("//");
 				if (offset != -1) line = line.substring(0, offset);
 				
 				if (line.contains(RegisterParameter.DELAY_KEY)) {
@@ -128,17 +225,17 @@ public class ArduCamCfgFileParameters {
 	}
 		
 	public class CameraParameter{
-		public static final String CFG_MODE_KEY = "CFG_MODE";
-		public static final String TYPE_KEY = "TYPE";
-		public static final String SIZE_KEY = "SIZE";
-		public static final String BIT_WIDTH_KEY = "BIT_WIDTH";
-		public static final String FORMAT_KEY = "FORMAT";
-		public static final String I2C_MODE_KEY = "I2C_MODE";
-		public static final String I2C_ADDR_KEY = "I2C_ADDR";
-		public static final String TRANS_LVL_KEY = "TRANS_LVL";
+		private static final String CFG_MODE_KEY = "CFG_MODE";
+		private static final String TYPE_KEY = "TYPE";
+		private static final String SIZE_KEY = "SIZE";
+		private static final String BIT_WIDTH_KEY = "BIT_WIDTH";
+		private static final String FORMAT_KEY = "FORMAT";
+		private static final String I2C_MODE_KEY = "I2C_MODE";
+		private static final String I2C_ADDR_KEY = "I2C_ADDR";
+		private static final String TRANS_LVL_KEY = "TRANS_LVL";
 		
 		public int CFG_MODE = 1;
-		public String TYPE  = "AR0134";
+		public String TYPE  = "";
 		public int[] SIZE = {1280, 964};  
 		public int BIT_WIDTH = 8;
 		public int[] FORMAT = {0, 2};
@@ -156,8 +253,8 @@ public class ArduCamCfgFileParameters {
 	}
 	
 	public class RegisterParameter{
-		public static final String DELAY_KEY = "DELAY";
-		public static final String REG_KEY = "REG";
+		private static final String DELAY_KEY = "DELAY";
+		private static final String REG_KEY = "REG";
 		
 		public static final int REG = 0;
 		public static final int DELAY = 1;
@@ -167,9 +264,12 @@ public class ArduCamCfgFileParameters {
 		public int value;
 	}
 	
-	public enum Parameter {
+	private enum ParameterType {
 		CAMERA_PARAMETER,
+		BOARD_PARAMETER,
 		BOARD_USB2_PARAMETER,
+		BOARD_USB3_INF2_PARAMETER,
+		BOARD_USB3_INF3_PARAMETER,
 		REGISTER_PARAMETER,
 		NONE
 	}

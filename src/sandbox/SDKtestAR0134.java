@@ -1,4 +1,4 @@
-package arducam;
+package sandbox;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -20,10 +20,13 @@ import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 
+import arducam.ArduCamSDK;
+import arducam.Utils;
 import arducam.ArduCamSDK.ArduCamCfg;
 import arducam.ArduCamSDK.ArduCamOutData;
+import arducam.ArduCamSDK.ArduCamCfg.ByReference;
 
-public class MaxTest extends JPanel {
+public class SDKtestAR0134 extends JPanel {
 	private static ArduCamSDK arduCamSDKlib;
 	private static IntByReference useHandle;
 	private static Thread captureImageThread;
@@ -36,7 +39,7 @@ public class MaxTest extends JPanel {
 
 	private static int[] pixList = new int[HEIGHT * WIDTH];
 
-	public MaxTest() throws InterruptedException {
+	public SDKtestAR0134() throws InterruptedException {
 		initGUI();
 	}
 
@@ -95,10 +98,8 @@ public class MaxTest extends JPanel {
 					
 					byte[] imageData = arduCamOutData.pu8ImageData.getPointer().getByteArray(0, arduCamCfg.u32Size);
 //					
-					int val = 0;
 					for (int i = 0; i < imageData.length; i++) {
-						val = Byte.toUnsignedInt(imageData[i]);
-						if (val > pixList[i]) pixList[i] = val;
+						pixList[i] = imageData[i];
 					}
 					
 					javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -207,7 +208,7 @@ public class MaxTest extends JPanel {
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x302A, 0x0010);
 
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3032, 0x0000);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30B0, 0x00B0);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30B0, 0x0080);
 
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x301A, 0x10DC);
 		//		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x301A, 0x1990);
@@ -218,7 +219,7 @@ public class MaxTest extends JPanel {
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3006, 0x03BF);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3008, 0x04FF);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x300A, 0x03DE);
-		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3012, 0xFF00);
+		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3012, 0x0100);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x3014, 0x00C0);
 		answer += arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, 0x30A6, 0x0001);
 
@@ -326,7 +327,7 @@ public class MaxTest extends JPanel {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		MaxTest test = new MaxTest();
+		SDKtestAR0134 test = new SDKtestAR0134();
 
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
