@@ -13,5 +13,5 @@ It reads cfg file and let you set camera registers.
 
 Very simple raw bayer to RGB with subpixel.
 
-[capture03](pictures/Capture03.PNG)
-[capture04](pictures/Capture04.PNG)
+[capture03](https://github.com/pierre-muth/JArduCAM_USB/blob/master/pictures/Capture03.PNG)
+[capture04](https://github.com/pierre-muth/JArduCAM_USB/blob/master/pictures/Capture04.PNG)
