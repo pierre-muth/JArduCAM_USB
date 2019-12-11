@@ -4,5 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jna-5.5.0.jar"/>
 	<classpathentry kind="lib" path="lib/jna-platform-5.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/jdataviewer.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/OpenCV"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

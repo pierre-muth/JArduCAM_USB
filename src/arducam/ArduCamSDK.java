@@ -62,7 +62,6 @@ public interface ArduCamSDK extends Library {
 	int ArduCam_endCaptureImage( int useHandle );
 	
 	int ArduCam_availableImage( int useHandle );
-//	int ArduCam_readImage( int useHandle, ArduCamOutData.ByReference pstFrameData );
 	int ArduCam_readImage( int useHandle, PointerByReference pstFrameData );	
 	
 	int ArduCam_writeSensorReg( int useHandle, int regAddr, int val );

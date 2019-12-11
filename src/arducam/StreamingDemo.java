@@ -11,7 +11,12 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -38,9 +43,11 @@ import com.sun.jna.ptr.PointerByReference;
 
 import arducam.ArduCamSDK.ArduCamCfg;
 import arducam.ArduCamSDK.ArduCamOutData;
+import sun.awt.image.ShortBandedRaster;
 import sun.security.provider.VerificationProvider;
 
 public class StreamingDemo extends JPanel implements ActionListener {
+	// constants
 	private static final String OPEN_FILE = "Open CFG file";
 	private static final String START_CAMERA = "Setup and Start camera";
 	private static final String STOP_CAMERA = "Stop camera";
@@ -52,6 +59,7 @@ public class StreamingDemo extends JPanel implements ActionListener {
 	private static final String DECODING_SUBPIX = "decode by sub-pixels";
 	private static final String DECODING_RAW = "decode as bayer RAW";
 	private static final String[] DECODING_OPT = {DECODING_BW, DECODING_SUBPIX, DECODING_RAW};
+	// GUI elements
 	private JLabel jlImage;
 	private JLabel jlInfo;
 	private JFileChooser fileChooser;
@@ -61,22 +69,20 @@ public class StreamingDemo extends JPanel implements ActionListener {
 	private JTextField jlRegValueMax;
 	private JSlider jsRegValueSlider;
 	private JComboBox<String> jcbDecoding;
-	private JCheckBox jchbMax;
 	
 	private ArduCamCfgFileParameters cfgParameters;
 	private static ArduCamSDK arduCamSDKlib;
 	private static IntByReference useHandle;
 	private static Thread captureImageThread;
 	private static Thread readImageThread;
-	private static boolean running = false;
+	private static AtomicBoolean running = new AtomicBoolean(false);
 	private static DecodingType decodingType = DecodingType.DECODING_BW;
 	private ArduCamSDK.ArduCamCfg.ByReference useCfg;
 	
+	// will change during config.
 	public static int HEIGHT = 964;
 	public static int WIDTH  = 1280;
-	
 	private static int[] pixList = new int[3];
-	private static int[] pixMax = new int[3];
 	
 	public StreamingDemo(){
 		initGUI();		
@@ -87,18 +93,16 @@ public class StreamingDemo extends JPanel implements ActionListener {
 			displayInfo("No parameters loaded.");
 			return;
 		}
-		if (running) {
+		if (running.get()) {
 			displayInfo("already running.");
 			return;
 		}
-		
 		int answer;
 		
 		WIDTH = cfgParameters.cameraParameters.SIZE[0];
 		HEIGHT = cfgParameters.cameraParameters.SIZE[1];
-		pixList = new int[WIDTH*HEIGHT*3];
-		pixMax= new int[WIDTH*HEIGHT*3];
 		jlImage.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		pixList = new int[WIDTH*HEIGHT*3];
 		
 		arduCamSDKlib = ArduCamSDK.INSTANCE;
 		
@@ -116,6 +120,7 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		useCfg.emI2cMode = cfgParameters.cameraParameters.I2C_MODE;
 		useCfg.emImageFmtMode = cfgParameters.cameraParameters.FORMAT[0];			// image format mode 
 		useCfg.u32TransLvl = cfgParameters.cameraParameters.TRANS_LVL;
+		
 
 		answer = arduCamSDKlib.ArduCam_autoopen(useHandle.getPointer(), useCfg);
 		displayInfo("ArduCam_autoopen returned: "+Utils.intToHex(answer));
@@ -160,8 +165,8 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		displayInfo( "ArduCam_setMode returned: "+Utils.intToHex(answer));
 		if (answer != 0) return;
 		
-		running = true;
-		Thread.sleep(1000);
+		running.set(true);
+		Thread.sleep(500);
 		
 		captureImageThread = new Thread(new CaptureImageThread(useHandle));
 		captureImageThread.start();
@@ -174,9 +179,9 @@ public class StreamingDemo extends JPanel implements ActionListener {
 	}
 	
 	private void stopCamera(){
-		if (!running) return;
+		if (!running.get()) return;
 
-		running = false; 
+		running.set(false); 
 		try {
 			captureImageThread.join();
 			readImageThread.join();
@@ -191,6 +196,7 @@ public class StreamingDemo extends JPanel implements ActionListener {
 	}
 	
 	private synchronized int setRegister(int register, int value){
+		if (cfgParameters == null) return -1;
 		int answer = 0;
 		int i2cAddr = cfgParameters.cameraParameters.I2C_ADDR;
 		answer  = arduCamSDKlib.ArduCam_writeReg_16_16(useHandle.getValue(), i2cAddr, register, value);
@@ -210,6 +216,7 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		}
 	}
 	
+	// Swing stuff
 	private void initGUI() {
 		setLayout(new BorderLayout());
 		JPanel jpCameraControl = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -225,19 +232,15 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		jcbDecoding = new JComboBox<>(DECODING_OPT);
 		jcbDecoding.setActionCommand(DECODE_CHANGED);
 		jcbDecoding.addActionListener(this);
-		jchbMax = new JCheckBox("Max'ing");
-		jchbMax.setSelected(false);
+		
 		jpCameraControl.add(jbOpen);
 		jpCameraControl.add(jbStart);
 		jpCameraControl.add(jbStop);
 		jpCameraControl.add(jcbDecoding);
-		jpCameraControl.add(jchbMax);
 		
-		JTextField jlSetRegister = new JTextField("Register name");
-		jlSetRegister.setPreferredSize(new Dimension(100,25));
-		jtfRegAddr = new JTextField("address");
+		jtfRegAddr = new JTextField("0x3012");
 		jtfRegAddr.setPreferredSize(new Dimension(60,25));
-		jtfRegValue = new JTextField("value");
+		jtfRegValue = new JTextField("200");
 		jtfRegValue.setPreferredSize(new Dimension(60,25));
 		JButton jbSetRegister = new JButton(REG_SET);
 		jbSetRegister.setMargin(new Insets(2, 2, 2, 2));
@@ -249,12 +252,13 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		jbGetRegister.setPreferredSize(new Dimension(40,25));
 		jbGetRegister.setActionCommand(REG_GET);
 		jbGetRegister.addActionListener(this);
-		jlRegValueMin = new JTextField("0");
+		jlRegValueMin = new JTextField("1");
 		jlRegValueMin.setPreferredSize(new Dimension(60,25));
-		jlRegValueMax = new JTextField("65535");
+		jlRegValueMax = new JTextField("5000");
 		jlRegValueMax.setPreferredSize(new Dimension(60,25));
-		jsRegValueSlider = new JSlider(0, 0xFFFF);
+		jsRegValueSlider = new JSlider(1, 5000);
 		jsRegValueSlider.setPreferredSize(new Dimension(100,25));
+		jsRegValueSlider.setValue(200);
 		jsRegValueSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -264,7 +268,6 @@ public class StreamingDemo extends JPanel implements ActionListener {
 			}
 		});
 		JPanel jpRegister = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		jpRegister.add(jlSetRegister);
 		jpRegister.add(jtfRegAddr);
 		jpRegister.add(jtfRegValue);
 		jpRegister.add(jbSetRegister);
@@ -301,9 +304,9 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		});
 	}
 	
+	// GUI actions
 	@Override
 	public void actionPerformed(ActionEvent actionEvent) {
-
 		if (actionEvent.getActionCommand().equals(OPEN_FILE)){
 			int returnVal = fileChooser.showOpenDialog(this);
 			if(returnVal == JFileChooser.APPROVE_OPTION) {
@@ -399,10 +402,8 @@ public class StreamingDemo extends JPanel implements ActionListener {
 			for (int i = 0; i < pixList.length; i++) {
 				pixList[i] = 0;
 			}
-			for (int i = 0; i < pixMax.length; i++) {
-				pixMax[i] = 0;
-			}
 		}
+		
 	}
 	
 	public static void main(String[] args) {
@@ -415,6 +416,9 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		frame.setVisible(true);
 	}
 	
+	/**
+	 * Thread reading and decode the image data.
+	 */
 	private class ReadImageThread implements Runnable {
 		private IntByReference useHandle;
 		private PointerByReference pstFrameData = new PointerByReference();
@@ -427,8 +431,9 @@ public class StreamingDemo extends JPanel implements ActionListener {
 		@Override
 		public void run() {
 			int answer;
+			int restTime = 0;
 
-			while(running){
+			while(running.get()){
 				answer = arduCamSDKlib.ArduCam_availableImage(useHandle.getValue());
 				if (answer >0){
 
@@ -441,55 +446,73 @@ public class StreamingDemo extends JPanel implements ActionListener {
 					int imageUnsingedByte;
 					
 					if (cfgParameters.cameraParameters.BIT_WIDTH == 8){
-						if (decodingType == DecodingType.DECODING_BW) {
-							for (int i = 0; i < imageData.length; i++) {
-								imageUnsingedByte = Byte.toUnsignedInt(imageData[i]);
-								pixList[i*3] = imageUnsingedByte;
-								pixList[1+i*3] = imageUnsingedByte;
-								pixList[2+i*3] = imageUnsingedByte;
-							}
-						}
-						if (decodingType == DecodingType.DECODING_RAW) {
-							for (int i = 0; i < imageData.length; i++) {
-								imageUnsingedByte = Byte.toUnsignedInt(imageData[i]);
-								// blue
-								if( (i/WIDTH)%2 == 0 && i%2==1) pixList[i*3] = imageUnsingedByte;
-								// green
-								if( (i/WIDTH)%2 == 0 && i%2==0) pixList[1+i*3] = imageUnsingedByte;
-								if( (i/WIDTH)%2 == 1 && i%2==1) pixList[1+i*3] = imageUnsingedByte;
-								// red
-								if( (i/WIDTH)%2 == 1 && i%2==0) pixList[2+i*3] = imageUnsingedByte;
-							}
-						}
-						if (decodingType == DecodingType.DECODING_SUBPIX) {
-							int i;
-							for (int y = 0; y < HEIGHT/2; y++) {
-								for (int x = 0; x < WIDTH/2; x++) {
-									i = x+y*WIDTH;
-									pixList[i*3  ] = Byte.toUnsignedInt(imageData[(x*2)+(y*2*WIDTH)+1]);		//R
-									pixList[i*3+1] = Byte.toUnsignedInt(imageData[(x*2)+(y*2*WIDTH)]); 			//G
-									pixList[i*3+2] = Byte.toUnsignedInt(imageData[(x*2)+(y*2*WIDTH)+WIDTH]);	//B
-								}
-							}
+						// 8 bit per pixel
+						// pixels are b&w and not color decoded
+						for (int i = 0; i < imageData.length; i++) {
+							imageUnsingedByte = Byte.toUnsignedInt(imageData[i]);
+							pixList[i*3] = imageUnsingedByte;
+							pixList[1+i*3] = imageUnsingedByte;
+							pixList[2+i*3] = imageUnsingedByte;
 						}
 						
+						
 					} else {
-						//TODO 12bit
-//						for (int i = 0; i < imageData.length; i++) {
-//							pixList[i] = (imageData[i]<<4);
-//						}
+						// 12 bit et pixel
+						// pixels are b&w and not color decoded
+						ByteBuffer bb = ByteBuffer.wrap(imageData);
+						bb.order(ByteOrder.LITTLE_ENDIAN);
+						
+						for (int i = 0; i < imageData.length/2; i++) {
+							pixList[i*3] = bb.getShort();
+							pixList[i*3] /= 16;
+							pixList[i*3+1] = pixList[i*3];
+							pixList[i*3+2] = pixList[i*3];
+						}
+						
 					}
 					
-					if (jchbMax.isSelected()) {
-						for (int i = 0; i < pixList.length; i++) {
-							if (pixList[i]>pixMax[i]) {
-								pixMax[i] = pixList[i];
-							} else {
-								pixList[i] = pixMax[i];
+					// pixels are not color decoded but in the the color channel corresponging to the bayer matrix
+					if (decodingType == DecodingType.DECODING_RAW) {
+						for (int i = 0; i < (WIDTH*HEIGHT); i++) {
+							imageUnsingedByte = Byte.toUnsignedInt(imageData[i]);
+							// blue
+							if( (i/WIDTH)%2 == 0 && i%2==1 ) {
+								pixList[1+i*3] = 0;
+								pixList[2+i*3] = 0;
+							}
+							// green
+							if( (i/WIDTH)%2 == 0 && i%2==0 ) {
+								pixList[0+i*3] = 0;
+								pixList[2+i*3] = 0;
+							}
+							if( (i/WIDTH)%2 == 1 && i%2==1 ) {
+								pixList[0+i*3] = 0;
+								pixList[2+i*3] = 0;
+							}
+							// red
+							if( (i/WIDTH)%2 == 1 && i%2==0 ){
+								pixList[0+i*3] = 0;
+								pixList[1+i*3] = 0;
 							}
 						}
 					}
 					
+					// simple color decoding: creating sub-pixel (divides resolution by 4)
+					if (decodingType == DecodingType.DECODING_SUBPIX) {
+						int i;
+						for (int y = 0; y < HEIGHT/2; y++) {
+							for (int x = 0; x < WIDTH/2; x++) {
+								i = x+y*WIDTH;
+								pixList[i*3+1] = pixList[3*((x*2)+(y*2*WIDTH))]; 		//G
+								pixList[i*3  ] = pixList[3*((x*2)+(y*2*WIDTH)+1)];		//R
+								pixList[i*3+2] = pixList[3*((x*2)+(y*2*WIDTH)+WIDTH)];	//B
+								
+								
+							}
+						}
+					}
+					
+					// refresh the displayed image
 					javax.swing.SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
 							BufferedImage bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_3BYTE_BGR);
@@ -503,11 +526,12 @@ public class StreamingDemo extends JPanel implements ActionListener {
 					});
 
 					answer = arduCamSDKlib.ArduCam_del(useHandle.getValue());
-					displayInfo(" fps: "+ 1000/( new Date().getTime() - time ));
+					
+					displayInfo(1000/( new Date().getTime() - time ) +" fps.  "+restTime*5+" ms slept.");
 					time = new Date().getTime();
-					System.out.println("");
+					restTime=0;
 
-				} else System.out.print(".");
+				} else restTime++;
 
 				try {
 					Thread.sleep(5);
@@ -520,6 +544,9 @@ public class StreamingDemo extends JPanel implements ActionListener {
 	}
 
 	
+	/**
+	 *  Thread that sends continuously a capture request.
+	 */
 	private class CaptureImageThread implements Runnable {
 		private IntByReference useHandle;
 
@@ -539,7 +566,8 @@ public class StreamingDemo extends JPanel implements ActionListener {
 
 			displayInfo( "launching ArduCam_captureImage");
 			
-			while(running){
+			// loop requesting a capture, should run fast and continuously
+			while(running.get()){
 				answer = arduCamSDKlib.ArduCam_captureImage(useHandle.getValue());
 			}
 
