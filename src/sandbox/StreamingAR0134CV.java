@@ -13,6 +13,7 @@ import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,6 +38,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
@@ -475,89 +477,34 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 				if (answer >0){
 
 					answer = arduCamSDKlib.ArduCam_readImage(useHandle.getValue(), pstFrameData);
-					
 					ArduCamOutData arduCamOutData = new ArduCamOutData(pstFrameData.getValue());
 					ArduCamCfg arduCamCfg = arduCamOutData.stImagePara;
+					byte[] imageRAWByteData = arduCamOutData.pu8ImageData.getPointer().getByteArray(0, arduCamCfg.u32Size);
 					
-					byte[] imageData = arduCamOutData.pu8ImageData.getPointer().getByteArray(0, arduCamCfg.u32Size);
-					ByteBuffer bytebuf = ByteBuffer.wrap(imageData);
-//					bb.order(ByteOrder.LITTLE_ENDIAN);
-					MatOfByte m = new MatOfByte(imageData);
-//					Imgcodecs.
-
-					int imageUnsingedByte;
-					
-					// 8 bit per pixel
+					Mat matRAW;
 					if (cfgParameters.cameraParameters.BIT_WIDTH == 8){
-						// pixels are b&w and not color decoded
-						if (decodingType == DecodingType.DECODING_BW) {
-							for (int i = 0; i < imageData.length; i++) {
-								imageUnsingedByte = Byte.toUnsignedInt(imageData[i]);
-								pixList[i*3] = imageUnsingedByte;
-								pixList[1+i*3] = imageUnsingedByte;
-								pixList[2+i*3] = imageUnsingedByte;
-							}
-						}
-						// pixels are not color decoded but in the the color channel corresponging to the bayer matrix
-						if (decodingType == DecodingType.DECODING_RAW) {
-							for (int i = 0; i < imageData.length; i++) {
-								imageUnsingedByte = Byte.toUnsignedInt(imageData[i]);
-								// blue
-								if( (i/WIDTH)%2 == 0 && i%2==1) pixList[i*3] = imageUnsingedByte;
-								// green
-								if( (i/WIDTH)%2 == 0 && i%2==0) pixList[1+i*3] = imageUnsingedByte;
-								if( (i/WIDTH)%2 == 1 && i%2==1) pixList[1+i*3] = imageUnsingedByte;
-								// red
-								if( (i/WIDTH)%2 == 1 && i%2==0) pixList[2+i*3] = imageUnsingedByte;
-							}
-						}
-						// simple color decoding: creating sub-pixel (divides resolution by 4)
-						if (decodingType == DecodingType.DECODING_SUBPIX) {
-							int i;
-							for (int y = 0; y < HEIGHT/2; y++) {
-								for (int x = 0; x < WIDTH/2; x++) {
-									i = x+y*WIDTH;
-									pixList[i*3  ] = Byte.toUnsignedInt(imageData[(x*2)+(y*2*WIDTH)+1]);		//R
-									pixList[i*3+1] = Byte.toUnsignedInt(imageData[(x*2)+(y*2*WIDTH)]); 			//G
-									pixList[i*3+2] = Byte.toUnsignedInt(imageData[(x*2)+(y*2*WIDTH)+WIDTH]);	//B
-								}
-							}
-						}
-						
+						matRAW =  new Mat(HEIGHT, WIDTH, CvType.CV_8UC1);
+						matRAW.put(0, 0, imageRAWByteData);
 					} else {
-						//TODO 12 bit et pixel
-//						for (int i = 0; i < imageData.length; i++) {
-//							pixList[i] = (imageData[i]<<4);
-//						}
+						ByteBuffer bb = ByteBuffer.wrap(imageRAWByteData);
+						bb.order(ByteOrder.LITTLE_ENDIAN);
+						ShortBuffer sb = bb.asShortBuffer();
+						short[] shorts = new short[sb.capacity()];
+						sb.get(shorts);
+						Mat matRAW16 =  new Mat(HEIGHT, WIDTH, CvType.CV_16UC1);
+						matRAW16.put(0, 0, shorts);
+						matRAW =  new Mat(HEIGHT, WIDTH, CvType.CV_8UC1);
+						
+						Core.normalize(matRAW16, matRAW, Core.NORM_MINMAX, 0, 255);
+						
+//						matRAW.convertTo(matRAW16, CvType.CV_8UC1);
 					}
 					
-					// keep only highest value
-					if (jchbMax.isSelected()) {
-						for (int i = 0; i < pixList.length; i++) {
-							if (pixList[i]>pixMax[i]) {
-								pixMax[i] = pixList[i];
-							} else {
-								pixList[i] = pixMax[i];
-							}
-						}
-					}
-					
-					// substract the bufferer value
-					if (jchSubBuff.isSelected()) {
-						if(pixList.length == pixBuffer.length) {
-							for (int i = 0; i < pixList.length; i++) {
-								pixList[i] -= pixBuffer[i];
-								if (pixList[i] < 0) pixList[i] = 0;
-								if (pixList[i] > 255) pixList[i] = 255;
-							}
-						}
-					}
-					
-					// save the current frame as a buffer
-					if (saveBuffer.get()) {
-						pixBuffer = pixList.clone();
-						saveBuffer.set(false);
-					}
+					Mat colorMat = new Mat(HEIGHT, WIDTH, CvType.CV_8UC3);
+					Imgproc.cvtColor(matRAW, colorMat, Imgproc.COLOR_BayerGR2BGR);
+
+					byte[] imageColorData = new byte[WIDTH * HEIGHT * (int)colorMat.elemSize()];
+					colorMat.get(0, 0, imageColorData);
 					
 					// refresh the displayed image
 					javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -565,29 +512,12 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 							BufferedImage bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_3BYTE_BGR);
 							WritableRaster raster;
 							raster = bufferedImage.getRaster();
-							raster.setPixels(0, 0, WIDTH, HEIGHT, pixList);
+							raster.setDataElements(0, 0, WIDTH, HEIGHT, imageColorData);
 							bufferedImage.setData(raster);
-							
 							jlImage.setIcon(new ImageIcon(bufferedImage));
 						}
 					});
 					
-					// get the histogram from data on frame
-					histogramDataSet.clear();
-					int startIdx = (WIDTH*(HEIGHT-2)) +16;
-					int value;
-					ByteBuffer bb;
-					
-					for (int i = startIdx; i < 128+startIdx; i+=2) {
-						bb = ByteBuffer.allocate(2);
-						bb.order(ByteOrder.BIG_ENDIAN);
-						bb.put(imageData[i]);
-						bb.put(imageData[i+1]);
-						value = bb.getShort(0);
-						histogramDataSet.add(i, value);
-//						System.out.print(value+" ");
-					}
-//					System.out.println(".");
 					answer = arduCamSDKlib.ArduCam_del(useHandle.getValue());
 					
 					displayInfo(1000/( new Date().getTime() - time ) +" fps.  "+restTime*5+" ms slept.");
