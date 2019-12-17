@@ -77,7 +77,6 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 	private JTextField jlRegValueMin;
 	private JTextField jlRegValueMax;
 	private JSlider jsRegValueSlider;
-	private JComboBox<String> jcbDecoding;
 	private JCheckBox jchbMax;
 	private JCheckBox jchSubBuff;
 	
@@ -88,15 +87,13 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 	private static Thread readImageThread;
 	private static AtomicBoolean running = new AtomicBoolean(false);
 	private static AtomicBoolean saveBuffer = new AtomicBoolean(false);
-	private static DecodingType decodingType = DecodingType.DECODING_BW;
 	private ArduCamSDK.ArduCamCfg.ByReference useCfg;
 	
 	public static int HEIGHT = 964;
 	public static int WIDTH  = 1280;
 	
-	private static int[] pixList = new int[3];
-	private static int[] pixMax = new int[3];
-	private static int[] pixBuffer = new int[3];
+	private static Mat maxMat;
+	private static Mat bufMat;
 	private static DefaultDataSet histogramDataSet = new DefaultDataSet("histogram");
 	
 	public StreamingAR0134CV(){
@@ -117,8 +114,10 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 		
 		WIDTH = cfgParameters.cameraParameters.SIZE[0];
 		HEIGHT = cfgParameters.cameraParameters.SIZE[1];
-		pixList = new int[WIDTH*HEIGHT*3];
-		pixMax= new int[WIDTH*HEIGHT*3];
+		
+		maxMat = new Mat(HEIGHT, WIDTH, CvType.CV_8UC3);
+		bufMat = new Mat(HEIGHT, WIDTH, CvType.CV_8UC3);
+		
 		jlImage.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		
 		arduCamSDKlib = ArduCamSDK.INSTANCE;
@@ -244,9 +243,6 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 		JButton jbStop = new JButton(STOP_CAMERA);
 		jbStop.setActionCommand(STOP_CAMERA);
 		jbStop.addActionListener(this);
-		jcbDecoding = new JComboBox<>(DECODING_OPT);
-		jcbDecoding.setActionCommand(DECODE_CHANGED);
-		jcbDecoding.addActionListener(this);
 		JButton jbSaveBuff = new JButton(SAVEBUFFER);
 		jbSaveBuff.setActionCommand(SAVEBUFFER);
 		jbSaveBuff.addActionListener(this);
@@ -258,7 +254,6 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 		jpCameraControl.add(jbOpen);
 		jpCameraControl.add(jbStart);
 		jpCameraControl.add(jbStop);
-		jpCameraControl.add(jcbDecoding);
 		jpCameraControl.add(jbSaveBuff);
 		jpCameraControl.add(jchbMax);
 		jpCameraControl.add(jchSubBuff);
@@ -424,24 +419,6 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 			setRegister(register, value);
 		}
 		
-		if (actionEvent.getActionCommand().equals(DECODE_CHANGED)){
-			if ( ((String)jcbDecoding.getSelectedItem()).equals(DECODING_BW) ) {
-				decodingType = DecodingType.DECODING_BW;
-			}
-			if ( ((String)jcbDecoding.getSelectedItem()).equals(DECODING_SUBPIX) ) {
-				decodingType = DecodingType.DECODING_SUBPIX;
-			}
-			if ( ((String)jcbDecoding.getSelectedItem()).equals(DECODING_RAW) ) {
-				decodingType = DecodingType.DECODING_RAW;
-			}
-			for (int i = 0; i < pixList.length; i++) {
-				pixList[i] = 0;
-			}
-			for (int i = 0; i < pixMax.length; i++) {
-				pixMax[i] = 0;
-			}
-		}
-		
 		if (actionEvent.getActionCommand().equals(SAVEBUFFER)){
 			saveBuffer.set(true);
 		}
@@ -480,28 +457,47 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 					ArduCamOutData arduCamOutData = new ArduCamOutData(pstFrameData.getValue());
 					ArduCamCfg arduCamCfg = arduCamOutData.stImagePara;
 					byte[] imageRAWByteData = arduCamOutData.pu8ImageData.getPointer().getByteArray(0, arduCamCfg.u32Size);
-					
+					Mat colorMat;
 					Mat matRAW;
+					
 					if (cfgParameters.cameraParameters.BIT_WIDTH == 8){
 						matRAW =  new Mat(HEIGHT, WIDTH, CvType.CV_8UC1);
 						matRAW.put(0, 0, imageRAWByteData);
+						colorMat = new Mat(HEIGHT, WIDTH, CvType.CV_8UC3);
+						Imgproc.cvtColor(matRAW, colorMat, Imgproc.COLOR_BayerGR2BGR);
 					} else {
 						ByteBuffer bb = ByteBuffer.wrap(imageRAWByteData);
 						bb.order(ByteOrder.LITTLE_ENDIAN);
 						ShortBuffer sb = bb.asShortBuffer();
 						short[] shorts = new short[sb.capacity()];
 						sb.get(shorts);
-						Mat matRAW16 =  new Mat(HEIGHT, WIDTH, CvType.CV_16UC1);
-						matRAW16.put(0, 0, shorts);
-						matRAW =  new Mat(HEIGHT, WIDTH, CvType.CV_8UC1);
-						
-						Core.normalize(matRAW16, matRAW, Core.NORM_MINMAX, 0, 255);
-						
-//						matRAW.convertTo(matRAW16, CvType.CV_8UC1);
+						matRAW =  new Mat(HEIGHT, WIDTH, CvType.CV_16UC1);
+						matRAW.put(0, 0, shorts);
+						Core.normalize(matRAW, matRAW, 0, 255, Core.NORM_MINMAX);
+						colorMat =  new Mat(HEIGHT, WIDTH, CvType.CV_16UC3);
+						Imgproc.cvtColor(matRAW, colorMat, Imgproc.COLOR_BayerGR2BGR);
+						colorMat.convertTo(colorMat, CvType.CV_8UC3);
 					}
 					
-					Mat colorMat = new Mat(HEIGHT, WIDTH, CvType.CV_8UC3);
-					Imgproc.cvtColor(matRAW, colorMat, Imgproc.COLOR_BayerGR2BGR);
+					// keep only highest value
+					if (jchbMax.isSelected()) {
+						Core.max(colorMat, maxMat, maxMat);
+						maxMat.copyTo(colorMat);
+					} else {
+						colorMat.copyTo(maxMat);
+					}
+					
+					// substract the bufferer value
+					if (jchSubBuff.isSelected()) {
+						Core.subtract(colorMat, bufMat, colorMat);
+					}
+					
+					// save the current frame as a buffer
+					if (saveBuffer.get()) {
+						colorMat.copyTo(bufMat);
+						saveBuffer.set(false);
+					}
+					
 
 					byte[] imageColorData = new byte[WIDTH * HEIGHT * (int)colorMat.elemSize()];
 					colorMat.get(0, 0, imageColorData);
@@ -519,6 +515,21 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 					});
 					
 					answer = arduCamSDKlib.ArduCam_del(useHandle.getValue());
+					
+					// get the histogram from data on frame
+//					histogramDataSet.clear();
+//					int startIdx = (WIDTH*(HEIGHT-2)) +16;
+//					int value;
+//					ByteBuffer bb;
+//					
+//					for (int i = startIdx; i < 128+startIdx; i+=2) {
+//						bb = ByteBuffer.allocate(2);
+//						bb.order(ByteOrder.BIG_ENDIAN);
+//						bb.put(imageRAWByteData[i]);
+//						bb.put(imageRAWByteData[i+1]);
+//						value = bb.getShort(0);
+//						histogramDataSet.add(i, value);
+//					}
 					
 					displayInfo(1000/( new Date().getTime() - time ) +" fps.  "+restTime*5+" ms slept.");
 					time = new Date().getTime();
@@ -566,7 +577,4 @@ public class StreamingAR0134CV extends JPanel implements ActionListener {
 		}
 	}
 	
-	private enum DecodingType {
-		DECODING_BW, DECODING_SUBPIX, DECODING_RAW
-	}
 }
